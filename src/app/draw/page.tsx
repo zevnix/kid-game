@@ -35,27 +35,24 @@ export default function DrawPage() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        saveHistory();
-      }
+    if (!canvas) return;
+
+    // Maintain crisp high-res canvas while tracking responsive bounds
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      saveHistory();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
+  const getCoordinates = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
-    let clientX, clientY;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
 
+    let clientX, clientY;
     if ('touches' in e) {
       clientX = e.touches[0].clientX;
       clientY = e.touches[0].clientY;
@@ -64,12 +61,20 @@ export default function DrawPage() {
       clientY = e.clientY;
     }
 
-    // Calcula la escala entre el tamaño real del canvas y el tamaño renderizado
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
+  };
 
-    const x = (clientX - rect.left) * scaleX;
-    const y = (clientY - rect.top) * scaleY;
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const { x, y } = getCoordinates(e, canvas);
 
     ctx.beginPath();
     ctx.moveTo(x, y);
@@ -84,22 +89,7 @@ export default function DrawPage() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    let clientX, clientY;
-
-    if ('touches' in e) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-
-    const x = (clientX - rect.left) * scaleX;
-    const y = (clientY - rect.top) * scaleY;
+    const { x, y } = getCoordinates(e, canvas);
 
     ctx.lineTo(x, y);
     ctx.strokeStyle = isEraser ? "#ffffff" : color;
@@ -226,12 +216,12 @@ export default function DrawPage() {
         </div>
 
         {/* Canvas container */}
-        <div className="flex-1 bg-slate-100 rounded-3xl shadow-sm border-4 border-slate-200 relative overflow-hidden flex items-center justify-center touch-none">
+        <div className="flex-1 bg-slate-100 rounded-3xl shadow-sm border-4 border-slate-200 relative overflow-hidden flex items-center justify-center touch-none aspect-video md:aspect-auto">
           <canvas
             ref={canvasRef}
             width={1200}
             height={800}
-            className="w-full h-full object-contain bg-white cursor-crosshair touch-none shadow-sm"
+            className="w-full h-full bg-white cursor-crosshair touch-none shadow-sm block object-fill"
             onMouseDown={startDrawing}
             onMouseMove={draw}
             onMouseUp={stopDrawing}

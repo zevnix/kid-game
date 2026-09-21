@@ -4,26 +4,10 @@ import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import confetti from "canvas-confetti";
-
-interface ColorItem {
-  id: string;
-  name: string;
-  bgClass: string;
-  hexCode: string;
-}
-
-const COLORS: ColorItem[] = [
-  { id: 'red', name: 'Rojo', bgClass: 'bg-red-500', hexCode: '#ef4444' },
-  { id: 'blue', name: 'Azul', bgClass: 'bg-blue-500', hexCode: '#3b82f6' },
-  { id: 'green', name: 'Verde', bgClass: 'bg-green-500', hexCode: '#22c55e' },
-  { id: 'yellow', name: 'Amarillo', bgClass: 'bg-yellow-400', hexCode: '#facc15' },
-  { id: 'orange', name: 'Naranja', bgClass: 'bg-orange-500', hexCode: '#f97316' },
-  { id: 'purple', name: 'Morado', bgClass: 'bg-purple-500', hexCode: '#a855f7' },
-  { id: 'pink', name: 'Rosa', bgClass: 'bg-pink-400', hexCode: '#f472b6' },
-  { id: 'black', name: 'Negro', bgClass: 'bg-slate-900', hexCode: '#0f172a' },
-];
+import { useStore, ColorItem } from "@/store/useStore";
 
 export default function ColorsPage() {
+  const colors = useStore((state) => state.colors);
   const [activeColor, setActiveColor] = useState<string | null>(null);
 
   const playColor = (color: ColorItem) => {
@@ -54,7 +38,7 @@ export default function ColorsPage() {
       <Navigation title="Colores Mágicos" />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {COLORS.map((color, idx) => (
+        {colors.map((color, idx) => (
           <motion.button
             key={color.id}
             whileHover={{ scale: 1.05, rotate: idx % 2 === 0 ? 5 : -5 }}
