@@ -6,60 +6,66 @@ import { useEffect, useRef, useState } from "react";
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const { bgMusicUrl, bgImageUrl } = useStore((state) => state.generalSettings);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
 
-  // Intentar reproducir música cuando exista URL y el usuario haya interactuado
+  // Format the URL. Users might accidentally type "public/" because that's where they put the file.
+  // In Next.js, the 'public' folder maps to the root directory '/'.
+  const formatUrl = (url: string) => {
+    if (!url) return "";
+    if (url.startsWith('http')) return url;
+    let cleanUrl = url.replace(/^public\//, '');
+    cleanUrl = cleanUrl.replace(/^\//, ''); // Remove leading slash if any
+    return `/${cleanUrl}`;
+  };
+
   useEffect(() => {
     if (bgMusicUrl) {
+      const finalUrl = formatUrl(bgMusicUrl);
+
       if (!audioRef.current) {
-        audioRef.current = new Audio(bgMusicUrl.startsWith('http') ? bgMusicUrl : `/${bgMusicUrl.replace(/^\//, '')}`);
+        audioRef.current = new Audio(finalUrl);
         audioRef.current.loop = true;
         audioRef.current.volume = 0.2; // Volumen bajito para no molestar los audios del juego
-      } else {
-        audioRef.current.src = bgMusicUrl.startsWith('http') ? bgMusicUrl : `/${bgMusicUrl.replace(/^\//, '')}`;
+      } else if (audioRef.current.src !== window.location.origin + finalUrl) {
+        audioRef.current.src = finalUrl;
       }
 
       const tryPlay = async () => {
         try {
-          await audioRef.current?.play();
-          setIsPlaying(true);
+          if (audioRef.current && audioRef.current.paused) {
+            await audioRef.current.play();
+          }
         } catch {
-          // El navegador bloqueó el autoplay. Se necesita interacción primero.
-          setIsPlaying(false);
+          // Navegador bloqueó autoplay
         }
       };
 
       tryPlay();
 
-      // Añadir listener global por si falló el autoplay
       const handleInteraction = () => {
-        if (!isPlaying) {
-          tryPlay();
-        }
+        tryPlay();
+        // Una vez que funciona, no necesitamos seguir escuchando clics para la música base
+        window.removeEventListener('click', handleInteraction);
       };
 
       window.addEventListener('click', handleInteraction);
+
       return () => {
         window.removeEventListener('click', handleInteraction);
-        if (audioRef.current) {
-          audioRef.current.pause();
-        }
       };
     } else {
       if (audioRef.current) {
         audioRef.current.pause();
-        setIsPlaying(false);
+        audioRef.current = null;
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bgMusicUrl, isPlaying]);
+  }, [bgMusicUrl]);
 
   return (
     <>
       {bgImageUrl && (
         <div
           className="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat opacity-50"
-          style={{ backgroundImage: `url(${bgImageUrl.startsWith('http') ? bgImageUrl : `/${bgImageUrl.replace(/^\//, '')}`})` }}
+          style={{ backgroundImage: `url(${formatUrl(bgImageUrl)})` }}
         />
       )}
       {children}

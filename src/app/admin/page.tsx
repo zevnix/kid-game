@@ -227,12 +227,13 @@ export default function AdminPage() {
               </div>
               <div>
                 <label className="block text-sm font-bold text-slate-600 mb-1">URL / Archivo de Música de Fondo (Opcional)</label>
-                <input type="text" value={bgMusic} onChange={(e) => setBgMusic(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. https://.../musica.mp3 o public/general/bg.mp3" />
-                <p className="text-xs text-slate-400 mt-1">Sugerencia: Puedes colocar el archivo en public/general/ y escribir la ruta aquí.</p>
+                <input type="text" value={bgMusic} onChange={(e) => setBgMusic(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. general/musica.mp3" />
+                <p className="text-xs text-slate-400 mt-1">Guarda el mp3 en la carpeta <b>public/general/</b> de tu laptop y escribe aquí: <b>general/tunombre.mp3</b></p>
               </div>
               <div>
                 <label className="block text-sm font-bold text-slate-600 mb-1">URL / Archivo de Imagen de Fondo (Opcional)</label>
-                <input type="text" value={bgImage} onChange={(e) => setBgImage(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. https://.../fondo.jpg o /general/fondo.png" />
+                <input type="text" value={bgImage} onChange={(e) => setBgImage(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. general/fondo.jpg" />
+                <p className="text-xs text-slate-400 mt-1">Guarda tu imagen en <b>public/general/</b> y escribe aquí: <b>general/fondo.jpg</b> (O pega una URL directa de internet).</p>
               </div>
               <button type="submit" className="bg-blue-500 text-white font-bold py-3 rounded-xl hover:bg-blue-600 mt-2">Guardar Cambios Globales</button>
             </form>
