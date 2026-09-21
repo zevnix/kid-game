@@ -19,6 +19,7 @@ export default function AdminPage() {
   // Form states for Drawing
   const [drawingName, setDrawingName] = useState("");
   const [drawingPath, setDrawingPath] = useState("");
+  const [drawingViewBox, setDrawingViewBox] = useState("0 0 100 100");
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,10 +53,12 @@ export default function AdminPage() {
       addDrawing({
         id: Date.now().toString(),
         name: drawingName,
-        svgPaths: [drawingPath] // Simplificación para añadir al menos un path
+        svgPaths: [drawingPath], // Simplificación para añadir al menos un path
+        viewBox: drawingViewBox || "0 0 100 100"
       });
       setDrawingName("");
       setDrawingPath("");
+      setDrawingViewBox("0 0 100 100");
       alert("¡Dibujo añadido exitosamente!");
     }
   };
@@ -172,13 +175,21 @@ export default function AdminPage() {
               />
             </div>
             <div>
+              <label className="block text-sm font-bold text-slate-600 mb-1">ViewBox Original del SVG</label>
+              <input
+                type="text" value={drawingViewBox} onChange={(e) => setDrawingViewBox(e.target.value)}
+                className="w-full p-3 rounded-xl border-2 border-slate-200 outline-none focus:border-blue-400 font-mono text-sm"
+                placeholder="0 0 100 100" required
+              />
+              <p className="text-xs text-slate-400 mt-1">Busca el atributo viewBox en el archivo SVG original.</p>
+            </div>
+            <div>
               <label className="block text-sm font-bold text-slate-600 mb-1">Ruta SVG (atributo &apos;d&apos; de un path)</label>
               <textarea
                 value={drawingPath} onChange={(e) => setDrawingPath(e.target.value)}
                 className="w-full p-3 rounded-xl border-2 border-slate-200 outline-none focus:border-blue-400 min-h-[100px] font-mono text-sm"
                 placeholder="M 10 10 C 20 20..." required
               />
-              <p className="text-xs text-slate-400 mt-1">Debe estar adaptado a un viewBox de 0 0 100 100.</p>
             </div>
             <button type="submit" className="bg-blue-500 text-white font-bold py-3 rounded-xl hover:bg-blue-600">
               Guardar Dibujo

@@ -81,7 +81,7 @@ export default function ColorPage() {
         <div className="flex-1 bg-white rounded-3xl shadow-sm border-4 border-slate-200 flex items-center justify-center p-4 overflow-hidden relative">
           {selectedDrawing ? (
             <svg
-              viewBox="0 0 100 100"
+              viewBox={selectedDrawing.viewBox || "0 0 100 100"}
               className="w-full h-full max-h-[70vh] drop-shadow-sm touch-none"
               preserveAspectRatio="xMidYMid meet"
             >

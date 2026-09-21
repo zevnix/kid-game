@@ -11,6 +11,7 @@ export interface ColoringDrawing {
   id: string;
   name: string;
   svgPaths: string[]; // Simplificado: array de comandos 'd' de un SVG o similar
+  viewBox?: string; // Permitir que el dibujo defina su propio tamaño
 }
 
 interface AppState {
@@ -40,7 +41,8 @@ const DEFAULT_DRAWINGS: ColoringDrawing[] = [
     svgPaths: [
       'M 50 20 C 70 0, 90 20, 80 50 C 70 80, 30 80, 20 50 C 10 20, 30 0, 50 20 Z', // cuerpo de la manzana
       'M 50 20 Q 50 10 60 5' // tallo
-    ]
+    ],
+    viewBox: '0 0 100 100'
   }
 ];
 
