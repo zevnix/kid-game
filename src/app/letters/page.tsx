@@ -11,7 +11,7 @@ export default function LettersPage() {
 
   // Transformar el array del store en el diccionario esperado por la UI actual
   const letterExamples = useMemo(() => {
-    const dict: Record<string, { word: string, icon: string, audioPath?: string }[]> = {};
+    const dict: Record<string, { word: string, icon: string, imagePath?: string, audioPath?: string }[]> = {};
     lettersStore.forEach(l => { dict[l.id] = l.examples; });
     return dict;
   }, [lettersStore]);
@@ -31,12 +31,25 @@ export default function LettersPage() {
     if (navigator.vibrate) navigator.vibrate(50);
   };
 
-  const playExample = (word: string) => {
-    const utterThis = new SpeechSynthesisUtterance(word);
-    utterThis.lang = 'es-ES';
-    window.speechSynthesis.speak(utterThis);
+  const playExample = (ex: { word: string, audioPath?: string }) => {
+    if (ex.audioPath) {
+      try {
+        const audio = new Audio(`/letters/${ex.audioPath}`);
+        audio.play().catch(() => playSynthetic(ex.word));
+      } catch {
+        playSynthetic(ex.word);
+      }
+    } else {
+      playSynthetic(ex.word);
+    }
 
     if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+  };
+
+  const playSynthetic = (text: string) => {
+    const utterThis = new SpeechSynthesisUtterance(text);
+    utterThis.lang = 'es-ES';
+    window.speechSynthesis.speak(utterThis);
   };
 
   return (
@@ -106,10 +119,14 @@ export default function LettersPage() {
                   key={i}
                   whileHover={{ scale: 1.05, y: -5 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => playExample(ex.word)}
+                  onClick={() => playExample(ex)}
                   className="bg-blue-50 border-b-8 border-blue-200 rounded-[2rem] p-6 flex flex-col items-center gap-4 hover:bg-blue-100 transition-colors"
                 >
-                  <span className="text-6xl md:text-7xl drop-shadow-md">{ex.icon}</span>
+                  {ex.imagePath ? (
+                    <img src={`/letters/${ex.imagePath}`} alt={ex.word} className="w-24 h-24 object-contain drop-shadow-md" />
+                  ) : (
+                    <span className="text-6xl md:text-7xl drop-shadow-md">{ex.icon}</span>
+                  )}
                   <span className="text-xl md:text-2xl font-bold text-slate-700 bg-white px-4 py-2 rounded-full w-full">{ex.word}</span>
                 </motion.button>
               ))}

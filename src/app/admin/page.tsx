@@ -34,17 +34,21 @@ export default function AdminPage() {
   const [colorId, setColorId] = useState("");
   const [colorName, setColorName] = useState("");
   const [colorHex, setColorHex] = useState("#000000");
+  const [colorAudio, setColorAudio] = useState("");
 
   // Form states for Shape
   const [shapeId, setShapeId] = useState("");
   const [shapeName, setShapeName] = useState("");
   const [shapeSvg, setShapeSvg] = useState("");
+  const [shapeAudio, setShapeAudio] = useState("");
 
   // Form states for Letters
   const { letters, updateLetter } = useStore();
   const [selectedLetter, setSelectedLetter] = useState("A");
   const [letterWord, setLetterWord] = useState("");
   const [letterIcon, setLetterIcon] = useState("");
+  const [letterImage, setLetterImage] = useState("");
+  const [letterAudio, setLetterAudio] = useState("");
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,10 +87,10 @@ export default function AdminPage() {
   const handleAddColor = (e: React.FormEvent) => {
     e.preventDefault();
     if (colorName && colorHex) {
-      const payload = { id: colorId || Date.now().toString(), name: colorName, hexCode: colorHex };
+      const payload = { id: colorId || Date.now().toString(), name: colorName, hexCode: colorHex, audioPath: colorAudio };
       if (colorId) updateColor(payload);
       else addColor(payload);
-      setColorId(""); setColorName("");
+      setColorId(""); setColorName(""); setColorAudio("");
       alert(`¡Color ${colorId ? "actualizado" : "añadido"} exitosamente!`);
     }
   };
@@ -94,10 +98,10 @@ export default function AdminPage() {
   const handleAddShape = (e: React.FormEvent) => {
     e.preventDefault();
     if (shapeName && shapeSvg) {
-      const payload = { id: shapeId || Date.now().toString(), name: shapeName, svgString: shapeSvg };
+      const payload = { id: shapeId || Date.now().toString(), name: shapeName, svgString: shapeSvg, audioPath: shapeAudio };
       if (shapeId) updateShape(payload);
       else addShape(payload);
-      setShapeId(""); setShapeName(""); setShapeSvg("");
+      setShapeId(""); setShapeName(""); setShapeSvg(""); setShapeAudio("");
       alert(`¡Forma ${shapeId ? "actualizada" : "añadida"} exitosamente!`);
     }
   };
@@ -105,17 +109,16 @@ export default function AdminPage() {
   const handleAddLetterExample = (e: React.FormEvent) => {
     e.preventDefault();
     const targetLetter = letters.find(l => l.id === selectedLetter);
-    if (targetLetter && letterWord && letterIcon) {
+    if (targetLetter && letterWord) {
       if (targetLetter.examples.length >= 5) {
         alert("Máximo 5 ejemplos permitidos por letra.");
         return;
       }
       updateLetter({
         ...targetLetter,
-        examples: [...targetLetter.examples, { word: letterWord, icon: letterIcon }]
+        examples: [...targetLetter.examples, { word: letterWord, icon: letterIcon || "🌟", imagePath: letterImage, audioPath: letterAudio }]
       });
-      setLetterWord("");
-      setLetterIcon("");
+      setLetterWord(""); setLetterIcon(""); setLetterImage(""); setLetterAudio("");
       alert(`¡Ejemplo añadido a la letra ${selectedLetter}!`);
     }
   };
@@ -306,9 +309,13 @@ export default function AdminPage() {
                     <input type="text" value={colorHex} onChange={(e) => setColorHex(e.target.value)} className="flex-1 p-3 rounded-xl border-2 border-slate-200 uppercase font-mono" required />
                   </div>
                 </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-600 mb-1">Archivo de Audio Opcional (public/colors/)</label>
+                  <input type="text" value={colorAudio} onChange={(e) => setColorAudio(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. rojo.mp3" />
+                </div>
                 <div className="flex gap-2">
                   <button type="submit" className="flex-1 bg-purple-500 text-white font-bold py-3 rounded-xl hover:bg-purple-600">Guardar</button>
-                  {colorId && <button type="button" onClick={() => { setColorId(""); setColorName(""); setColorHex("#000000"); }} className="bg-slate-200 text-slate-700 font-bold py-3 px-6 rounded-xl hover:bg-slate-300">Cancelar</button>}
+                  {colorId && <button type="button" onClick={() => { setColorId(""); setColorName(""); setColorHex("#000000"); setColorAudio(""); }} className="bg-slate-200 text-slate-700 font-bold py-3 px-6 rounded-xl hover:bg-slate-300">Cancelar</button>}
                 </div>
               </form>
             </motion.div>
@@ -324,7 +331,7 @@ export default function AdminPage() {
                         <span className="font-bold text-slate-700">{c.name}</span>
                       </div>
                       <div className="flex gap-1">
-                        <button onClick={() => { setColorId(c.id); setColorName(c.name); setColorHex(c.hexCode); }} className="text-blue-500 hover:bg-blue-100 p-2 rounded-lg"><Edit2 size={18} /></button>
+                        <button onClick={() => { setColorId(c.id); setColorName(c.name); setColorHex(c.hexCode); setColorAudio(c.audioPath || ""); }} className="text-blue-500 hover:bg-blue-100 p-2 rounded-lg"><Edit2 size={18} /></button>
                         <button onClick={() => deleteColor(c.id)} className="text-red-500 hover:bg-red-100 p-2 rounded-lg"><Trash2 size={18} /></button>
                       </div>
                     </li>
@@ -349,9 +356,13 @@ export default function AdminPage() {
                   <label className="block text-sm font-bold text-slate-600 mb-1">Código SVG (interior del viewBox 0 0 100 100)</label>
                   <textarea value={shapeSvg} onChange={(e) => setShapeSvg(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200 font-mono text-sm min-h-[100px]" placeholder="<circle cx='50' cy='50' r='45' fill='red' />" required />
                 </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-600 mb-1">Archivo de Audio Opcional (public/shapes/)</label>
+                  <input type="text" value={shapeAudio} onChange={(e) => setShapeAudio(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. circulo.mp3" />
+                </div>
                 <div className="flex gap-2">
                   <button type="submit" className="flex-1 bg-cyan-500 text-white font-bold py-3 rounded-xl hover:bg-cyan-600">Guardar</button>
-                  {shapeId && <button type="button" onClick={() => { setShapeId(""); setShapeName(""); setShapeSvg(""); }} className="bg-slate-200 text-slate-700 font-bold py-3 px-6 rounded-xl hover:bg-slate-300">Cancelar</button>}
+                  {shapeId && <button type="button" onClick={() => { setShapeId(""); setShapeName(""); setShapeSvg(""); setShapeAudio(""); }} className="bg-slate-200 text-slate-700 font-bold py-3 px-6 rounded-xl hover:bg-slate-300">Cancelar</button>}
                 </div>
               </form>
             </motion.div>
@@ -364,7 +375,7 @@ export default function AdminPage() {
                     <li key={s.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
                       <span className="font-bold text-slate-700">{s.name}</span>
                       <div className="flex gap-1">
-                        <button onClick={() => { setShapeId(s.id); setShapeName(s.name); setShapeSvg(s.svgString); }} className="text-blue-500 hover:bg-blue-100 p-2 rounded-lg"><Edit2 size={18} /></button>
+                        <button onClick={() => { setShapeId(s.id); setShapeName(s.name); setShapeSvg(s.svgString); setShapeAudio(s.audioPath || ""); }} className="text-blue-500 hover:bg-blue-100 p-2 rounded-lg"><Edit2 size={18} /></button>
                         <button onClick={() => deleteShape(s.id)} className="text-red-500 hover:bg-red-100 p-2 rounded-lg"><Trash2 size={18} /></button>
                       </div>
                     </li>
@@ -395,8 +406,16 @@ export default function AdminPage() {
                   <input type="text" value={letterWord} onChange={(e) => setLetterWord(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. Araña" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-1">Emoji / Ícono</label>
-                  <input type="text" value={letterIcon} onChange={(e) => setLetterIcon(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. 🕷️" required maxLength={2} />
+                  <label className="block text-sm font-bold text-slate-600 mb-1">Emoji Opcional</label>
+                  <input type="text" value={letterIcon} onChange={(e) => setLetterIcon(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. 🕷️" maxLength={2} />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-600 mb-1">Imagen Real Opcional (public/letters/)</label>
+                  <input type="text" value={letterImage} onChange={(e) => setLetterImage(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. arana.png" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-600 mb-1">Audio Opcional (public/letters/)</label>
+                  <input type="text" value={letterAudio} onChange={(e) => setLetterAudio(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. arana.mp3" />
                 </div>
                 <button type="submit" className="bg-pink-500 text-white font-bold py-3 rounded-xl hover:bg-pink-600">Guardar Ejemplo</button>
               </form>
@@ -408,7 +427,7 @@ export default function AdminPage() {
                 <ul className="space-y-3 max-h-[400px] overflow-y-auto">
                   {letters.find(l => l.id === selectedLetter)?.examples.map((ex, i) => (
                     <li key={i} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <span className="font-bold text-slate-700">{ex.icon} {ex.word}</span>
+                      <span className="font-bold text-slate-700">{ex.icon} {ex.word} {ex.imagePath ? '(Img)' : ''}</span>
                       <button onClick={() => removeLetterExample(selectedLetter, ex.word)} className="text-red-500 hover:bg-red-100 p-2 rounded-lg"><Trash2 size={18} /></button>
                     </li>
                   ))}

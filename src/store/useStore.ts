@@ -35,7 +35,7 @@ export interface ShapeItem {
 
 export interface LetterExample {
   id: string; // Ej. 'A'
-  examples: { word: string, icon: string, audioPath?: string }[];
+  examples: { word: string, icon: string, imagePath?: string, audioPath?: string }[];
 }
 
 interface AppState {

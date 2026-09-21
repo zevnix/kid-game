@@ -13,13 +13,16 @@ export default function ColorsPage() {
   const playColor = (color: ColorItem) => {
     setActiveColor(color.id);
 
-    // Preparado para archivos MP3 reales en el futuro:
-    // const audio = new Audio(`/sounds/colors/${color.id}.mp3`);
-    // audio.play();
-
-    const utterThis = new SpeechSynthesisUtterance(color.name);
-    utterThis.lang = 'es-ES';
-    window.speechSynthesis.speak(utterThis);
+    if (color.audioPath) {
+      try {
+        const audio = new Audio(`/colors/${color.audioPath}`);
+        audio.play().catch(() => playSynthetic(color.name));
+      } catch {
+        playSynthetic(color.name);
+      }
+    } else {
+      playSynthetic(color.name);
+    }
 
     if (navigator.vibrate) navigator.vibrate(150);
 
@@ -31,6 +34,12 @@ export default function ColorsPage() {
     });
 
     setTimeout(() => setActiveColor(null), 1000);
+  };
+
+  const playSynthetic = (text: string) => {
+    const utterThis = new SpeechSynthesisUtterance(text);
+    utterThis.lang = 'es-ES';
+    window.speechSynthesis.speak(utterThis);
   };
 
   return (

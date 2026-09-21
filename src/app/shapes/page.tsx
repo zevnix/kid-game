@@ -12,9 +12,17 @@ export default function ShapesPage() {
 
   const playShape = (shape: ShapeItem) => {
     setActiveShape(shape.id);
-    const utterThis = new SpeechSynthesisUtterance(shape.name);
-    utterThis.lang = 'es-ES';
-    window.speechSynthesis.speak(utterThis);
+
+    if (shape.audioPath) {
+      try {
+        const audio = new Audio(`/shapes/${shape.audioPath}`);
+        audio.play().catch(() => playSynthetic(shape.name));
+      } catch {
+        playSynthetic(shape.name);
+      }
+    } else {
+      playSynthetic(shape.name);
+    }
 
     if (navigator.vibrate) navigator.vibrate(100);
 
@@ -25,6 +33,12 @@ export default function ShapesPage() {
     });
 
     setTimeout(() => setActiveShape(null), 1000);
+  };
+
+  const playSynthetic = (text: string) => {
+    const utterThis = new SpeechSynthesisUtterance(text);
+    utterThis.lang = 'es-ES';
+    window.speechSynthesis.speak(utterThis);
   };
 
   return (
