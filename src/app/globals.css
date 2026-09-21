@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-quicksand);
+}
+
+@layer base {
+  :root {
+    --background: #f8fafc; /* Slate 50 - color pastel claro de fondo */
+    --foreground: #0f172a;
+  }
+
+  * {
+    @apply select-none; /* Evita que los niños seleccionen texto por error */
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    background-image:
+      radial-gradient(#cbd5e1 2px, transparent 2px),
+      radial-gradient(#cbd5e1 2px, transparent 2px);
+    background-size: 40px 40px;
+    background-position: 0 0, 20px 20px;
+    /* Un patrón de puntos de fondo para que se vea más lúdico */
+    overflow-x: hidden;
+  }
+}
