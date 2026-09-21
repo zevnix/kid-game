@@ -8,7 +8,7 @@ import { Lock, Unlock, Plus, Trash2 } from "lucide-react";
 
 export default function AdminPage() {
   const {
-    isAdmin, loginAdmin, logoutAdmin,
+    panelRole, loginPanel, logoutPanel,
     animals, addAnimal, deleteAnimal,
     drawings, addDrawing, deleteDrawing
   } = useStore();
@@ -27,7 +27,7 @@ export default function AdminPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (loginAdmin(pin)) {
+    if (loginPanel(pin)) {
       setError(false);
       setPin("");
     } else {
@@ -67,10 +67,10 @@ export default function AdminPage() {
     }
   };
 
-  if (!isAdmin) {
+  if (!panelRole) {
     return (
       <div className="min-h-screen">
-        <Navigation title="Área de Padres" />
+        <Navigation title="Área de Ajustes" />
 
         <div className="max-w-md mx-auto mt-20 bg-white p-8 rounded-3xl shadow-lg border border-slate-200">
           <div className="flex justify-center mb-6 text-slate-400">
@@ -79,9 +79,11 @@ export default function AdminPage() {
           <h2 className="text-2xl font-bold text-center text-slate-700 mb-6">
             Introduce el PIN
           </h2>
-          <p className="text-center text-slate-500 mb-6 text-sm">
-            (Para esta demo el PIN es 12345)
-          </p>
+          <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 mb-6 text-center">
+            <p className="font-bold mb-2">Claves de Prueba:</p>
+            <p>Admin Global: <b>admin123</b></p>
+            <p>Padres (Local): <b>padres123</b></p>
+          </div>
 
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             <input
@@ -108,10 +110,10 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen pb-20">
-      <div className="flex justify-between items-center mb-8">
-        <Navigation title="Panel de Control" />
+      <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
+        <Navigation title={`Panel de Control (${panelRole === 'admin' ? 'Admin Global' : 'Padres Local'})`} />
         <button
-          onClick={logoutAdmin}
+          onClick={logoutPanel}
           className="flex items-center gap-2 bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded-xl font-bold transition-colors"
         >
           <Unlock size={20} />
@@ -160,23 +162,25 @@ export default function AdminPage() {
           </form>
         </motion.div>
 
-        {/* Lista de Animales Actuales */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mt-6 md:col-span-1"
-        >
-          <h3 className="text-xl font-bold text-slate-700 mb-4">Animales Guardados</h3>
-          <ul className="space-y-3">
-            {animals.map(a => (
-              <li key={a.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="font-bold text-slate-700">{a.name} ({a.imagePath})</span>
-                <button onClick={() => deleteAnimal(a.id)} className="text-red-500 hover:bg-red-100 p-2 rounded-lg transition-colors">
-                  <Trash2 size={18} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </motion.div>
+        {/* Lista de Animales Actuales (Solo Admin) */}
+        {panelRole === 'admin' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mt-6 md:col-span-1"
+          >
+            <h3 className="text-xl font-bold text-slate-700 mb-4">Gestión Global de Animales</h3>
+            <ul className="space-y-3">
+              {animals.map(a => (
+                <li key={a.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="font-bold text-slate-700">{a.name} ({a.imagePath})</span>
+                  <button onClick={() => deleteAnimal(a.id)} className="text-red-500 hover:bg-red-100 p-2 rounded-lg transition-colors">
+                    <Trash2 size={18} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
 
         {/* Formulario Añadir Dibujo */}
         <motion.div
@@ -219,23 +223,25 @@ export default function AdminPage() {
           </form>
         </motion.div>
 
-        {/* Lista de Dibujos Actuales */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mt-6 md:col-span-1"
-        >
-          <h3 className="text-xl font-bold text-slate-700 mb-4">Dibujos Guardados</h3>
-          <ul className="space-y-3 max-h-[300px] overflow-y-auto">
-            {drawings.map(d => (
-              <li key={d.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="font-bold text-slate-700 truncate mr-2">{d.name}</span>
-                <button onClick={() => deleteDrawing(d.id)} className="text-red-500 hover:bg-red-100 p-2 rounded-lg transition-colors shrink-0">
-                  <Trash2 size={18} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </motion.div>
+        {/* Lista de Dibujos Actuales (Solo Admin) */}
+        {panelRole === 'admin' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mt-6 md:col-span-1"
+          >
+            <h3 className="text-xl font-bold text-slate-700 mb-4">Gestión Global de Dibujos</h3>
+            <ul className="space-y-3 max-h-[300px] overflow-y-auto">
+              {drawings.map(d => (
+                <li key={d.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="font-bold text-slate-700 truncate mr-2">{d.name}</span>
+                  <button onClick={() => deleteDrawing(d.id)} className="text-red-500 hover:bg-red-100 p-2 rounded-lg transition-colors shrink-0">
+                    <Trash2 size={18} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
       </div>
     </div>
   );

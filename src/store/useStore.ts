@@ -25,9 +25,9 @@ interface AppState {
   logoutUser: () => void;
   stars: number;
   addStar: () => void;
-  isAdmin: boolean;
-  loginAdmin: (pin: string) => boolean;
-  logoutAdmin: () => void;
+  panelRole: 'admin' | 'parent' | null;
+  loginPanel: (pin: string) => boolean;
+  logoutPanel: () => void;
   animals: Animal[];
   addAnimal: (animal: Animal) => void;
   deleteAnimal: (id: string) => void;
@@ -66,16 +66,19 @@ export const useStore = create<AppState>((set) => ({
   stars: 0,
   addStar: () => set((state) => ({ stars: state.stars + 1 })),
 
-  isAdmin: false,
-  loginAdmin: (pin: string) => {
-    // Seguridad básica solicitada: Evitar que cualquiera haga cambios
-    if (pin === '12345') {
-      set({ isAdmin: true });
+  panelRole: null,
+  loginPanel: (pin: string) => {
+    // Simulando base de datos: Rol admin y rol padre
+    if (pin === 'admin123') {
+      set({ panelRole: 'admin' });
+      return true;
+    } else if (pin === 'padres123') {
+      set({ panelRole: 'parent' });
       return true;
     }
     return false;
   },
-  logoutAdmin: () => set({ isAdmin: false }),
+  logoutPanel: () => set({ panelRole: null }),
 
   animals: DEFAULT_ANIMALS,
   addAnimal: (animal) => set((state) => ({ animals: [...state.animals, animal] })),
