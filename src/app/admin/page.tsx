@@ -9,6 +9,7 @@ import { Lock, Unlock, Plus, Trash2, Edit2 } from "lucide-react";
 export default function AdminPage() {
   const {
     panelRole, loginPanel, logoutPanel,
+    generalSettings, updateGeneralSettings,
     animals, addAnimal, deleteAnimal,
     drawings, addDrawing, deleteDrawing,
     colors, addColor, deleteColor,
@@ -16,7 +17,12 @@ export default function AdminPage() {
   } = useStore();
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
-  const [activeTab, setActiveTab] = useState<"animals" | "drawings" | "colors" | "shapes" | "letters">("animals");
+  const [activeTab, setActiveTab] = useState<"general" | "animals" | "drawings" | "colors" | "shapes" | "letters">("general");
+
+  // Form states for General
+  const [title, setTitle] = useState(generalSettings.gameTitle);
+  const [bgMusic, setBgMusic] = useState(generalSettings.bgMusicUrl);
+  const [bgImage, setBgImage] = useState(generalSettings.bgImageUrl);
 
   // Form states for Animal
   const [animalId, setAnimalId] = useState(""); // If empty, it's adding new. If set, it's editing.
@@ -58,6 +64,12 @@ export default function AdminPage() {
     } else {
       setError(true);
     }
+  };
+
+  const handleSaveGeneral = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateGeneralSettings({ gameTitle: title, bgMusicUrl: bgMusic, bgImageUrl: bgImage });
+    alert("¡Ajustes generales guardados exitosamente!");
   };
 
   const { updateAnimal, updateDrawing, updateColor, updateShape } = useStore();
@@ -189,20 +201,48 @@ export default function AdminPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 overflow-x-auto mb-8 pb-2 border-b-2 border-slate-200">
-        {(["animals", "drawings", "colors", "shapes", "letters"] as const).map(tab => (
+        {(["general", "animals", "drawings", "colors", "shapes", "letters"] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-6 py-3 rounded-t-2xl font-bold capitalize transition-colors ${
+            className={`px-6 py-3 rounded-t-2xl font-bold capitalize transition-colors whitespace-nowrap ${
               activeTab === tab ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
-            {tab === "animals" ? "Animales" : tab === "drawings" ? "Pintar" : tab === "colors" ? "Colores" : tab === "shapes" ? "Formas" : "Letras"}
+            {tab === "general" ? "General" : tab === "animals" ? "Animales" : tab === "drawings" ? "Pintar" : tab === "colors" ? "Colores" : tab === "shapes" ? "Formas" : "Letras"}
           </button>
         ))}
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
+
+        {/* TAB GENERAL */}
+        {activeTab === "general" && panelRole === "admin" && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 md:col-span-2 max-w-2xl">
+            <h3 className="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">Configuración General (Solo Admin)</h3>
+            <form onSubmit={handleSaveGeneral} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-600 mb-1">Título del Juego</label>
+                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. ¡Aprende Jugando!" required />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-600 mb-1">URL / Archivo de Música de Fondo (Opcional)</label>
+                <input type="text" value={bgMusic} onChange={(e) => setBgMusic(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. https://.../musica.mp3 o public/general/bg.mp3" />
+                <p className="text-xs text-slate-400 mt-1">Sugerencia: Puedes colocar el archivo en public/general/ y escribir la ruta aquí.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-600 mb-1">URL / Archivo de Imagen de Fondo (Opcional)</label>
+                <input type="text" value={bgImage} onChange={(e) => setBgImage(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-200" placeholder="Ej. https://.../fondo.jpg o /general/fondo.png" />
+              </div>
+              <button type="submit" className="bg-blue-500 text-white font-bold py-3 rounded-xl hover:bg-blue-600 mt-2">Guardar Cambios Globales</button>
+            </form>
+          </motion.div>
+        )}
+        {activeTab === "general" && panelRole === "parent" && (
+          <div className="md:col-span-2 text-center text-slate-500 mt-10">
+            Los ajustes globales del juego solo pueden ser modificados por el Administrador.
+          </div>
+        )}
 
         {/* TAB ANIMALES */}
         {activeTab === "animals" && (

@@ -38,7 +38,16 @@ export interface LetterExample {
   examples: { word: string, icon: string, imagePath?: string, audioPath?: string }[];
 }
 
+export interface GeneralSettings {
+  gameTitle: string;
+  bgMusicUrl: string;
+  bgImageUrl: string;
+}
+
 interface AppState {
+  generalSettings: GeneralSettings;
+  updateGeneralSettings: (settings: Partial<GeneralSettings>) => void;
+
   currentUser: User | null;
   loginUser: (user: User) => void;
   logoutUser: () => void;
@@ -138,6 +147,13 @@ const DEFAULT_LETTERS: LetterExample[] = [
 ];
 
 export const useStore = create<AppState>((set) => ({
+  generalSettings: {
+    gameTitle: "¡Aprende Jugando!",
+    bgMusicUrl: "",
+    bgImageUrl: ""
+  },
+  updateGeneralSettings: (settings) => set((state) => ({ generalSettings: { ...state.generalSettings, ...settings } })),
+
   currentUser: null,
   loginUser: (user) => set({ currentUser: user }),
   logoutUser: () => set({ currentUser: null, stars: 0 }),

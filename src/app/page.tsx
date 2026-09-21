@@ -10,6 +10,7 @@ import { useStore } from "@/store/useStore";
 
 export default function Home() {
   const { currentUser, loginUser, logoutUser } = useStore();
+  const gameTitle = useStore((state) => state.generalSettings.gameTitle);
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
 
@@ -78,7 +79,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <Navigation title="¡Aprende Jugando!" showBack={false} />
+      <Navigation title={gameTitle} showBack={false} />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   description: "Un juego interactivo para aprender matemáticas, colores, formas y más.",
 };
 
+import { ClientLayout } from "@/components/ClientLayout";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,9 +29,11 @@ export default function RootLayout({
           "font-sans antialiased min-h-screen pb-10"
         )}
       >
-        <main className="max-w-4xl mx-auto px-4 pt-6">
-          {children}
-        </main>
+        <ClientLayout>
+          <main className="max-w-4xl mx-auto px-4 pt-6 relative z-10">
+            {children}
+          </main>
+        </ClientLayout>
       </body>
     </html>
   );
