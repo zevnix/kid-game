@@ -89,11 +89,12 @@ export default function ColorPage() {
                 <path
                   key={i}
                   d={d}
-                  fill={pathColors[i] || "#ffffff"}
+                  fill={pathColors[i] || "transparent"}
                   stroke="#1e293b"
-                  strokeWidth="1.5"
+                  strokeWidth={selectedDrawing.viewBox ? "2" : "1.5"}
+                  strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="cursor-pointer transition-colors duration-300"
+                  className="cursor-pointer transition-colors duration-300 hover:opacity-80"
                   onClick={() => handlePathClick(i)}
                   onTouchStart={(e) => { e.preventDefault(); handlePathClick(i); }}
                 />

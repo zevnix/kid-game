@@ -13,17 +13,16 @@ export default function AnimalsPage() {
   const playAnimal = (animal: Animal) => {
     setActiveAnimal(animal.id);
 
-    // Primero dice el nombre
+    try {
+      // Reproducir sonido real configurado
+      const audio = new Audio(`/animals/${animal.audioPath}`);
+      audio.play().catch(e => console.log("Audio file not found or blocked:", e));
+    } catch(e) {}
+
+    // Y pronunciar el nombre
     const utterName = new SpeechSynthesisUtterance(animal.name);
     utterName.lang = 'es-ES';
-
-    // Luego hace el sonido
-    const utterSound = new SpeechSynthesisUtterance(animal.soundText);
-    utterSound.lang = 'es-ES';
-    utterSound.pitch = 1.5; // Hacer la voz un poco más aguda/divertida para sonidos
-
     window.speechSynthesis.speak(utterName);
-    window.speechSynthesis.speak(utterSound);
 
     if (navigator.vibrate) navigator.vibrate([150, 50, 150]);
 
@@ -50,11 +49,19 @@ export default function AnimalsPage() {
             className="bg-emerald-100 border-b-8 border-emerald-300 rounded-[2rem] p-6 flex flex-col items-center justify-center gap-4 hover:bg-emerald-200 transition-colors"
           >
             <motion.div
-              className="text-7xl md:text-8xl"
+              className="w-24 h-24 md:w-32 md:h-32 flex items-center justify-center overflow-hidden"
               animate={activeAnimal === animal.id ? { scale: [1, 1.2, 1], rotate: [0, -10, 10, -10, 10, 0] } : {}}
               transition={{ duration: 0.5 }}
             >
-              {animal.emoji}
+              {/* Fallback a mostrar el nombre inicial si falla la imagen, aunque idealmente es una imagen real */}
+              <img
+                src={`/animals/${animal.imagePath}`}
+                alt={animal.name}
+                className="w-full h-full object-contain drop-shadow-md"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23cbd5e1"/><text x="50" y="55" font-size="40" text-anchor="middle" fill="white">?</text></svg>';
+                }}
+              />
             </motion.div>
             <span className="text-2xl md:text-3xl font-bold text-emerald-900 bg-white/60 px-4 py-2 rounded-full w-full">
               {animal.name}

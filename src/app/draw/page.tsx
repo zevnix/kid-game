@@ -3,32 +3,41 @@
 import { useRef, useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
-import { Eraser, Trash2 } from "lucide-react";
+import { Eraser, Trash2, Undo2 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useStore } from "@/store/useStore";
 
 const COLORS = ["#000000", "#ef4444", "#3b82f6", "#22c55e", "#facc15", "#f97316", "#a855f7", "#ec4899"];
-const SIZES = [5, 10, 15, 20];
 
 export default function DrawPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState(COLORS[0]);
-  const [size, setSize] = useState(SIZES[1]);
+  const [size, setSize] = useState(10); // Slider value
   const [isEraser, setIsEraser] = useState(false);
   const { addStar } = useStore();
+
+  // History for Undo
+  const [history, setHistory] = useState<string[]>([]);
+
+  const saveHistory = () => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      setHistory(prev => [...prev, canvas.toDataURL()]);
+    }
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      // Ajustar resolución para retina displays
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        // Establecer un fondo blanco
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        saveHistory();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
@@ -90,6 +99,8 @@ export default function DrawPage() {
   const stopDrawing = () => {
     if (isDrawing) {
       setIsDrawing(false);
+      saveHistory(); // Guardar estado para deshacer
+
       // Premiar aleatoriamente
       if (Math.random() > 0.8) {
         addStar();
@@ -105,7 +116,26 @@ export default function DrawPage() {
     if (ctx) {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      saveHistory();
     }
+  };
+
+  const undo = () => {
+    if (history.length <= 1) return; // Mantener al menos el fondo blanco
+
+    const newHistory = history.slice(0, -1);
+    setHistory(newHistory);
+
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+
+    const img = new Image();
+    img.src = newHistory[newHistory.length - 1];
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+    };
   };
 
   return (
@@ -113,9 +143,16 @@ export default function DrawPage() {
       <Navigation title="Dibujo Libre" />
 
       <div className="flex-1 flex flex-col md:flex-row gap-4 mb-4 min-h-0">
-        <div className="bg-white p-4 rounded-3xl shadow-sm flex md:flex-col gap-4 overflow-x-auto">
+        <div className="bg-white p-4 rounded-3xl shadow-sm flex md:flex-col gap-4 overflow-x-auto min-w-[80px]">
           {/* Herramientas */}
           <div className="flex md:flex-col gap-2 border-r md:border-r-0 md:border-b pr-4 md:pr-0 md:pb-4 border-slate-200">
+            <button
+              onClick={undo}
+              disabled={history.length <= 1}
+              className="p-3 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Undo2 size={24} />
+            </button>
             <button
               onClick={clearCanvas}
               className="p-3 bg-red-100 text-red-600 rounded-2xl hover:bg-red-200"
@@ -132,17 +169,16 @@ export default function DrawPage() {
             </button>
           </div>
 
-          {/* Tamaños */}
-          <div className="flex md:flex-col gap-2 items-center justify-center border-r md:border-r-0 md:border-b pr-4 md:pr-0 md:pb-4 border-slate-200">
-            {SIZES.map(s => (
-              <button
-                key={s}
-                onClick={() => setSize(s)}
-                className={`w-10 h-10 flex items-center justify-center rounded-full ${size === s ? 'bg-slate-200' : 'hover:bg-slate-100'}`}
-              >
-                <div className="bg-slate-800 rounded-full" style={{ width: s, height: s }} />
-              </button>
-            ))}
+          {/* Tamaños Slider */}
+          <div className="flex flex-col items-center justify-center border-r md:border-r-0 md:border-b pr-4 md:pr-0 md:pb-4 border-slate-200 gap-2 min-w-[100px]">
+             <div className="bg-slate-800 rounded-full transition-all" style={{ width: size, height: size }} />
+             <input
+                type="range"
+                min="2" max="40"
+                value={size}
+                onChange={(e) => setSize(Number(e.target.value))}
+                className="w-full accent-blue-500"
+             />
           </div>
 
           {/* Colores */}

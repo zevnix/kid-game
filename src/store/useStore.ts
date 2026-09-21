@@ -3,8 +3,13 @@ import { create } from 'zustand';
 export interface Animal {
   id: string;
   name: string;
-  emoji: string;
-  soundText: string;
+  imagePath: string; // Ejemplo: 'vaca.png'
+  audioPath: string; // Ejemplo: 'vaca.mp3'
+}
+
+export interface User {
+  name: string;
+  birthDate: string;
 }
 
 export interface ColoringDrawing {
@@ -15,6 +20,9 @@ export interface ColoringDrawing {
 }
 
 interface AppState {
+  currentUser: User | null;
+  loginUser: (user: User) => void;
+  logoutUser: () => void;
   stars: number;
   addStar: () => void;
   isAdmin: boolean;
@@ -22,15 +30,19 @@ interface AppState {
   logoutAdmin: () => void;
   animals: Animal[];
   addAnimal: (animal: Animal) => void;
+  deleteAnimal: (id: string) => void;
+  updateAnimal: (animal: Animal) => void;
   drawings: ColoringDrawing[];
   addDrawing: (drawing: ColoringDrawing) => void;
+  deleteDrawing: (id: string) => void;
+  updateDrawing: (drawing: ColoringDrawing) => void;
 }
 
 const DEFAULT_ANIMALS: Animal[] = [
-  { id: '1', name: 'Perro', emoji: '🐶', soundText: '¡Guau guau!' },
-  { id: '2', name: 'Gato', emoji: '🐱', soundText: '¡Miau miau!' },
-  { id: '3', name: 'Vaca', emoji: '🐄', soundText: '¡Muuu!' },
-  { id: '4', name: 'Cerdo', emoji: '🐷', soundText: '¡Oink oink!' },
+  // Ejemplos para que la UI no rompa, pero esperando archivos reales
+  { id: '1', name: 'Perro', imagePath: 'perro.png', audioPath: 'perro.mp3' },
+  { id: '2', name: 'Gato', imagePath: 'gato.png', audioPath: 'gato.mp3' },
+  { id: '3', name: 'Vaca', imagePath: 'vaca.png', audioPath: 'vaca.mp3' },
 ];
 
 const DEFAULT_DRAWINGS: ColoringDrawing[] = [
@@ -47,6 +59,10 @@ const DEFAULT_DRAWINGS: ColoringDrawing[] = [
 ];
 
 export const useStore = create<AppState>((set) => ({
+  currentUser: null,
+  loginUser: (user) => set({ currentUser: user }),
+  logoutUser: () => set({ currentUser: null, stars: 0 }),
+
   stars: 0,
   addStar: () => set((state) => ({ stars: state.stars + 1 })),
 
@@ -63,7 +79,11 @@ export const useStore = create<AppState>((set) => ({
 
   animals: DEFAULT_ANIMALS,
   addAnimal: (animal) => set((state) => ({ animals: [...state.animals, animal] })),
+  deleteAnimal: (id) => set((state) => ({ animals: state.animals.filter(a => a.id !== id) })),
+  updateAnimal: (animal) => set((state) => ({ animals: state.animals.map(a => a.id === animal.id ? animal : a) })),
 
   drawings: DEFAULT_DRAWINGS,
   addDrawing: (drawing) => set((state) => ({ drawings: [...state.drawings, drawing] })),
+  deleteDrawing: (id) => set((state) => ({ drawings: state.drawings.filter(d => d.id !== id) })),
+  updateDrawing: (drawing) => set((state) => ({ drawings: state.drawings.map(d => d.id === drawing.id ? drawing : d) })),
 }));

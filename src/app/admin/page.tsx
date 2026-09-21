@@ -4,17 +4,21 @@ import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import { useStore } from "@/store/useStore";
 import { motion } from "framer-motion";
-import { Lock, Unlock, Plus } from "lucide-react";
+import { Lock, Unlock, Plus, Trash2 } from "lucide-react";
 
 export default function AdminPage() {
-  const { isAdmin, loginAdmin, logoutAdmin, addAnimal, addDrawing } = useStore();
+  const {
+    isAdmin, loginAdmin, logoutAdmin,
+    animals, addAnimal, deleteAnimal,
+    drawings, addDrawing, deleteDrawing
+  } = useStore();
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
 
   // Form states for Animal
   const [animalName, setAnimalName] = useState("");
-  const [animalEmoji, setAnimalEmoji] = useState("");
-  const [animalSound, setAnimalSound] = useState("");
+  const [animalImage, setAnimalImage] = useState("");
+  const [animalAudio, setAnimalAudio] = useState("");
 
   // Form states for Drawing
   const [drawingName, setDrawingName] = useState("");
@@ -33,16 +37,16 @@ export default function AdminPage() {
 
   const handleAddAnimal = (e: React.FormEvent) => {
     e.preventDefault();
-    if (animalName && animalEmoji && animalSound) {
+    if (animalName && animalImage && animalAudio) {
       addAnimal({
         id: Date.now().toString(),
         name: animalName,
-        emoji: animalEmoji,
-        soundText: animalSound
+        imagePath: animalImage,
+        audioPath: animalAudio
       });
       setAnimalName("");
-      setAnimalEmoji("");
-      setAnimalSound("");
+      setAnimalImage("");
+      setAnimalAudio("");
       alert("¡Animal añadido exitosamente!");
     }
   };
@@ -135,25 +139,43 @@ export default function AdminPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1">Emoji</label>
+              <label className="block text-sm font-bold text-slate-600 mb-1">Archivo de Imagen (en carpeta public/animals/)</label>
               <input
-                type="text" value={animalEmoji} onChange={(e) => setAnimalEmoji(e.target.value)}
-                className="w-full p-3 rounded-xl border-2 border-slate-200 outline-none focus:border-emerald-400 text-2xl"
-                placeholder="🦁" required maxLength={2}
+                type="text" value={animalImage} onChange={(e) => setAnimalImage(e.target.value)}
+                className="w-full p-3 rounded-xl border-2 border-slate-200 outline-none focus:border-emerald-400"
+                placeholder="Ej. leon.png" required
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-600 mb-1">Sonido / Onomatopeya</label>
+              <label className="block text-sm font-bold text-slate-600 mb-1">Archivo de Audio (en carpeta public/animals/)</label>
               <input
-                type="text" value={animalSound} onChange={(e) => setAnimalSound(e.target.value)}
+                type="text" value={animalAudio} onChange={(e) => setAnimalAudio(e.target.value)}
                 className="w-full p-3 rounded-xl border-2 border-slate-200 outline-none focus:border-emerald-400"
-                placeholder="Ej. Grrrr!" required
+                placeholder="Ej. leon.mp3" required
               />
             </div>
             <button type="submit" className="bg-emerald-500 text-white font-bold py-3 rounded-xl hover:bg-emerald-600">
               Guardar Animal
             </button>
           </form>
+        </motion.div>
+
+        {/* Lista de Animales Actuales */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mt-6 md:col-span-1"
+        >
+          <h3 className="text-xl font-bold text-slate-700 mb-4">Animales Guardados</h3>
+          <ul className="space-y-3">
+            {animals.map(a => (
+              <li key={a.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <span className="font-bold text-slate-700">{a.name} ({a.imagePath})</span>
+                <button onClick={() => deleteAnimal(a.id)} className="text-red-500 hover:bg-red-100 p-2 rounded-lg transition-colors">
+                  <Trash2 size={18} />
+                </button>
+              </li>
+            ))}
+          </ul>
         </motion.div>
 
         {/* Formulario Añadir Dibujo */}
@@ -195,6 +217,24 @@ export default function AdminPage() {
               Guardar Dibujo
             </button>
           </form>
+        </motion.div>
+
+        {/* Lista de Dibujos Actuales */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mt-6 md:col-span-1"
+        >
+          <h3 className="text-xl font-bold text-slate-700 mb-4">Dibujos Guardados</h3>
+          <ul className="space-y-3 max-h-[300px] overflow-y-auto">
+            {drawings.map(d => (
+              <li key={d.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <span className="font-bold text-slate-700 truncate mr-2">{d.name}</span>
+                <button onClick={() => deleteDrawing(d.id)} className="text-red-500 hover:bg-red-100 p-2 rounded-lg transition-colors shrink-0">
+                  <Trash2 size={18} />
+                </button>
+              </li>
+            ))}
+          </ul>
         </motion.div>
       </div>
     </div>
