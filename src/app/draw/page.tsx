@@ -7,7 +7,12 @@ import { Eraser, Trash2, Undo2 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useStore } from "@/store/useStore";
 
-const COLORS = ["#000000", "#ef4444", "#3b82f6", "#22c55e", "#facc15", "#f97316", "#a855f7", "#ec4899"];
+import { Square, Circle } from "lucide-react";
+
+const COLORS = [
+  "#000000", "#ffffff", "#ef4444", "#f97316", "#facc15", "#84cc16", "#22c55e",
+  "#14b8a6", "#06b6d4", "#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#d946ef", "#f43f5e", "#881337"
+];
 
 export default function DrawPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,6 +20,7 @@ export default function DrawPage() {
   const [color, setColor] = useState(COLORS[0]);
   const [size, setSize] = useState(10); // Slider value
   const [isEraser, setIsEraser] = useState(false);
+  const [lineCap, setLineCap] = useState<CanvasLineCap>("round");
   const { addStar } = useStore();
 
   // History for Undo
@@ -58,8 +64,12 @@ export default function DrawPage() {
       clientY = e.clientY;
     }
 
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
+    // Calcula la escala entre el tamaño real del canvas y el tamaño renderizado
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
 
     ctx.beginPath();
     ctx.moveTo(x, y);
@@ -85,13 +95,16 @@ export default function DrawPage() {
       clientY = e.clientY;
     }
 
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
 
     ctx.lineTo(x, y);
     ctx.strokeStyle = isEraser ? "#ffffff" : color;
     ctx.lineWidth = size;
-    ctx.lineCap = "round";
+    ctx.lineCap = lineCap;
     ctx.lineJoin = "round";
     ctx.stroke();
   };
@@ -169,12 +182,28 @@ export default function DrawPage() {
             </button>
           </div>
 
+          {/* Puntas de pincel */}
+          <div className="flex md:flex-col gap-2 border-r md:border-r-0 md:border-b pr-4 md:pr-0 md:pb-4 border-slate-200">
+            <button
+              onClick={() => { setLineCap("round"); setIsEraser(false); }}
+              className={`p-3 rounded-2xl transition-colors ${lineCap === "round" && !isEraser ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            >
+              <Circle size={24} />
+            </button>
+            <button
+              onClick={() => { setLineCap("square"); setIsEraser(false); }}
+              className={`p-3 rounded-2xl transition-colors ${lineCap === "square" && !isEraser ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            >
+              <Square size={24} />
+            </button>
+          </div>
+
           {/* Tamaños Slider */}
           <div className="flex flex-col items-center justify-center border-r md:border-r-0 md:border-b pr-4 md:pr-0 md:pb-4 border-slate-200 gap-2 min-w-[100px]">
-             <div className="bg-slate-800 rounded-full transition-all" style={{ width: size, height: size }} />
+             <div className="bg-slate-800 transition-all" style={{ width: size, height: size, borderRadius: lineCap === 'round' ? '50%' : '0' }} />
              <input
                 type="range"
-                min="2" max="40"
+                min="2" max="60"
                 value={size}
                 onChange={(e) => setSize(Number(e.target.value))}
                 className="w-full accent-blue-500"
@@ -182,27 +211,27 @@ export default function DrawPage() {
           </div>
 
           {/* Colores */}
-          <div className="flex md:flex-col gap-2">
+          <div className="flex md:flex-col md:grid md:grid-cols-2 gap-2">
             {COLORS.map(c => (
               <motion.button
                 key={c}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => { setColor(c); setIsEraser(false); }}
-                className={`w-10 h-10 rounded-full border-2 ${color === c && !isEraser ? 'border-slate-800 scale-110' : 'border-transparent'}`}
-                style={{ backgroundColor: c }}
+                className={`w-10 h-10 rounded-full border-2 ${color === c && !isEraser ? 'border-slate-800 scale-110' : 'border-transparent shrink-0'}`}
+                style={{ backgroundColor: c, borderColor: c === '#ffffff' ? '#e2e8f0' : (color === c && !isEraser ? '#0f172a' : 'transparent') }}
               />
             ))}
           </div>
         </div>
 
         {/* Canvas container */}
-        <div className="flex-1 bg-white rounded-3xl shadow-sm overflow-hidden border-4 border-slate-200 relative touch-none">
+        <div className="flex-1 bg-slate-100 rounded-3xl shadow-sm border-4 border-slate-200 relative overflow-hidden flex items-center justify-center touch-none">
           <canvas
             ref={canvasRef}
-            width={800}
-            height={600}
-            className="w-full h-full object-contain bg-white cursor-crosshair touch-none"
+            width={1200}
+            height={800}
+            className="w-full h-full object-contain bg-white cursor-crosshair touch-none shadow-sm"
             onMouseDown={startDrawing}
             onMouseMove={draw}
             onMouseUp={stopDrawing}

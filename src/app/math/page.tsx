@@ -10,17 +10,16 @@ type Operation = "+" | "-" | "*" | "/";
 
 export default function MathPage() {
   const { addStar, currentUser } = useStore();
-  const [gameStarted, setGameStarted] = useState(false);
-  const [selectedOps, setSelectedOps] = useState<Operation[]>(["+"]);
+  const [step, setStep] = useState<"choose_op" | "choose_diff" | "playing">("choose_op");
+  const [selectedOp, setSelectedOp] = useState<Operation>("+");
   const [difficulty, setDifficulty] = useState(1); // 1: Fácil, 2: Medio, 3: Difícil
 
   const [num1, setNum1] = useState(0);
   const [num2, setNum2] = useState(0);
-  const [currentOp, setCurrentOp] = useState<Operation>("+");
   const [options, setOptions] = useState<number[]>([]);
-  const [message, setMessage] = useState("");
+  const [popupState, setPopupState] = useState<"correct" | "incorrect" | null>(null);
 
-  // Calcular edad aproximada (si el usuario ingresó fecha de nacimiento)
+  // Calcular edad aproximada (si el usuario ingresó fecha de nacimiento) para pre-seleccionar dificultad
   useEffect(() => {
     if (currentUser?.birthDate) {
       // Retrasar ligeramente para evitar actualización síncrona en render
@@ -37,8 +36,7 @@ export default function MathPage() {
   }, [currentUser]);
 
   const generateProblem = () => {
-    if (selectedOps.length === 0) return;
-    const op = selectedOps[Math.floor(Math.random() * selectedOps.length)];
+    const op = selectedOp;
 
     // Multiplicador base según dificultad
     const maxNumber = difficulty === 1 ? 10 : difficulty === 2 ? 30 : 100;
@@ -57,7 +55,6 @@ export default function MathPage() {
       n2 = Math.floor(Math.random() * (difficulty === 1 ? 5 : difficulty === 2 ? 10 : 20)) + 1;
     }
 
-    setCurrentOp(op);
     setNum1(n1);
     setNum2(n2);
 
@@ -81,30 +78,22 @@ export default function MathPage() {
     }
 
     setOptions(Array.from(newOptions).sort(() => Math.random() - 0.5));
-    setMessage("");
+    setPopupState(null);
   };
 
   useEffect(() => {
-    if (gameStarted) {
+    if (step === "playing") {
       const timeout = setTimeout(() => {
         generateProblem();
       }, 0);
       return () => clearTimeout(timeout);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameStarted]);
-
-  const toggleOp = (op: Operation) => {
-    if (selectedOps.includes(op)) {
-      if (selectedOps.length > 1) setSelectedOps(selectedOps.filter(o => o !== op));
-    } else {
-      setSelectedOps([...selectedOps, op]);
-    }
-  };
+  }, [step]);
 
   const handleAnswer = (ans: number) => {
     let correctAnswer = 0;
-    switch (currentOp) {
+    switch (selectedOp) {
       case "+": correctAnswer = num1 + num2; break;
       case "-": correctAnswer = num1 - num2; break;
       case "*": correctAnswer = num1 * num2; break;
@@ -112,6 +101,7 @@ export default function MathPage() {
     }
 
     if (ans === correctAnswer) {
+      setPopupState("correct");
       confetti({
         particleCount: 100,
         spread: 70,
@@ -124,17 +114,17 @@ export default function MathPage() {
 
       if (navigator.vibrate) navigator.vibrate(200);
 
-      setMessage("¡Correcto! 🌟");
       addStar();
-      setTimeout(() => generateProblem(), 1500);
+      setTimeout(() => generateProblem(), 2000);
     } else {
+      setPopupState("incorrect");
       const utterThis = new SpeechSynthesisUtterance("Intenta de nuevo");
       utterThis.lang = 'es-ES';
       window.speechSynthesis.speak(utterThis);
 
       if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
-      setMessage("¡Ups! Intenta otra vez.");
+      setTimeout(() => setPopupState(null), 1500);
     }
   };
 
@@ -142,94 +132,104 @@ export default function MathPage() {
     <div>
       <Navigation title="Matemáticas" />
 
-      {!gameStarted ? (
-        <div className="bg-white p-8 rounded-[2rem] shadow-sm max-w-md mx-auto mt-10 border-4 border-slate-100">
-          <h2 className="text-2xl font-bold text-slate-700 mb-6 text-center">Configura tu Juego</h2>
-
-          <div className="mb-6">
-            <label className="block font-bold text-slate-600 mb-3">¿Qué quieres practicar?</label>
-            <div className="grid grid-cols-2 gap-3">
-              {(["+", "-", "*", "/"] as Operation[]).map(op => (
-                <button
-                  key={op}
-                  onClick={() => toggleOp(op)}
-                  className={`p-4 rounded-xl text-3xl font-bold transition-colors ${
-                    selectedOps.includes(op) ? 'bg-blue-500 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                  }`}
-                >
-                  {op === '*' ? '×' : op === '/' ? '÷' : op}
-                </button>
-              ))}
-            </div>
+      {step === "choose_op" && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center mt-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-700 mb-8 text-center">¿Qué operación quieres practicar?</h2>
+          <div className="grid grid-cols-2 gap-6 w-full max-w-lg">
+            {(["+", "-", "*", "/"] as Operation[]).map(op => (
+              <motion.button
+                key={op}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => { setSelectedOp(op); setStep("choose_diff"); }}
+                className="bg-blue-400 hover:bg-blue-500 text-white text-6xl font-bold py-10 rounded-[3rem] shadow-[0_8px_0_0_rgba(29,78,216,1)] active:shadow-[0_0px_0_0_rgba(29,78,216,1)] active:translate-y-2 transition-all"
+              >
+                {op === '*' ? '×' : op === '/' ? '÷' : op}
+              </motion.button>
+            ))}
           </div>
-
-          <div className="mb-8">
-            <label className="block font-bold text-slate-600 mb-3">Nivel (Automático por edad)</label>
-            <div className="flex gap-2">
-              {[1, 2, 3].map(lvl => (
-                <button
-                  key={lvl}
-                  onClick={() => setDifficulty(lvl)}
-                  className={`flex-1 p-3 rounded-xl font-bold transition-colors ${
-                    difficulty === lvl ? 'bg-amber-400 text-amber-900 shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                  }`}
-                >
-                  {lvl === 1 ? 'Fácil' : lvl === 2 ? 'Medio' : 'Difícil'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button
-            onClick={() => setGameStarted(true)}
-            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold py-4 rounded-xl transition-transform hover:scale-105"
-          >
-            ¡Empezar a Jugar!
-          </button>
-        </div>
-      ) : (
-      <div className="flex flex-col items-center mt-10">
-        <motion.div
-          key={`${num1}${currentOp}${num2}`}
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="bg-white p-8 rounded-3xl shadow-lg border-4 border-blue-200 mb-8"
-        >
-          <h2 className="text-6xl md:text-8xl font-bold text-slate-700 flex items-center gap-4">
-            <span>{num1}</span>
-            <span className="text-blue-500">
-              {currentOp === '*' ? '×' : currentOp === '/' ? '÷' : currentOp}
-            </span>
-            <span>{num2}</span>
-            <span className="text-blue-500">=</span>
-            <span className="text-slate-300">?</span>
-          </h2>
         </motion.div>
+      )}
 
-        <div className="grid grid-cols-2 gap-6 w-full max-w-lg">
-          {options.map((opt, i) => (
-            <motion.button
-              key={i}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleAnswer(opt)}
-              className="bg-blue-400 hover:bg-blue-500 text-white text-4xl md:text-5xl font-bold py-6 rounded-3xl shadow-[0_8px_0_0_rgba(29,78,216,1)] active:shadow-[0_0px_0_0_rgba(29,78,216,1)] active:translate-y-2 transition-all"
-            >
-              {opt}
-            </motion.button>
-          ))}
-        </div>
+      {step === "choose_diff" && (
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center mt-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-700 mb-8 text-center">Elige la dificultad</h2>
+          <div className="flex flex-col gap-6 w-full max-w-md">
+            {[1, 2, 3].map(lvl => (
+              <motion.button
+                key={lvl}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => { setDifficulty(lvl); setStep("playing"); }}
+                className={`py-6 rounded-3xl font-bold text-3xl shadow-[0_8px_0_0_rgba(0,0,0,0.1)] active:shadow-none active:translate-y-2 transition-all
+                  ${lvl === 1 ? 'bg-emerald-400 text-emerald-900' : lvl === 2 ? 'bg-amber-400 text-amber-900' : 'bg-rose-400 text-rose-900'}
+                  ${difficulty === lvl ? 'ring-4 ring-slate-800' : ''}
+                `}
+              >
+                {lvl === 1 ? 'Fácil' : lvl === 2 ? 'Medio' : 'Difícil'}
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
-        {message && (
+      {step === "playing" && (
+        <div className="flex flex-col items-center mt-10 relative">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 text-2xl md:text-3xl font-bold text-slate-700 text-center bg-white/80 px-6 py-3 rounded-full"
+            key={`${num1}${selectedOp}${num2}`}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white p-8 rounded-3xl shadow-lg border-4 border-blue-200 mb-8"
           >
-            {message}
+            <h2 className="text-6xl md:text-8xl font-bold text-slate-700 flex items-center gap-4">
+              <span>{num1}</span>
+              <span className="text-blue-500">
+                {selectedOp === '*' ? '×' : selectedOp === '/' ? '÷' : selectedOp}
+              </span>
+              <span>{num2}</span>
+              <span className="text-blue-500">=</span>
+              <span className="text-slate-300">?</span>
+            </h2>
           </motion.div>
-        )}
-      </div>
+
+          <div className="grid grid-cols-2 gap-6 w-full max-w-lg">
+            {options.map((opt, i) => (
+              <motion.button
+                key={i}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleAnswer(opt)}
+                disabled={popupState !== null}
+                className="bg-blue-400 hover:bg-blue-500 text-white text-4xl md:text-5xl font-bold py-6 rounded-3xl shadow-[0_8px_0_0_rgba(29,78,216,1)] active:shadow-[0_0px_0_0_rgba(29,78,216,1)] active:translate-y-2 transition-all disabled:opacity-50"
+              >
+                {opt}
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Popups de Respuesta */}
+          {popupState === "correct" && (
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-50"
+            >
+              <div className="bg-emerald-400 text-white text-5xl font-black px-12 py-8 rounded-[3rem] shadow-2xl rotate-[-5deg] border-8 border-emerald-200">
+                ¡CORRECTO! 🌟
+              </div>
+            </motion.div>
+          )}
+
+          {popupState === "incorrect" && (
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-50"
+            >
+              <div className="bg-rose-400 text-white text-5xl font-black px-12 py-8 rounded-[3rem] shadow-2xl rotate-[5deg] border-8 border-rose-200">
+                ¡OH NO! 😅
+              </div>
+            </motion.div>
+          )}
+        </div>
       )}
     </div>
   );

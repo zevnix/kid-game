@@ -91,8 +91,8 @@ export default function AdminPage() {
               value={pin}
               onChange={(e) => setPin(e.target.value)}
               className={`text-center text-3xl tracking-widest p-4 rounded-xl border-2 outline-none transition-colors ${error ? 'border-red-400 bg-red-50' : 'border-slate-200 focus:border-blue-400'}`}
-              placeholder="•••••"
-              maxLength={5}
+              placeholder="••••••••"
+              maxLength={15}
             />
             {error && <p className="text-red-500 text-center font-bold">PIN Incorrecto</p>}
 
